@@ -18,9 +18,16 @@ import fitz
 import httpx
 from prompt_e_schema import PROMPT_SISTEMA, CATEGORIAS_COMPLETAS
 from supabase import create_client, Client
+from langfuse import get_client
+from openinference.instrumentation.google_genai import GoogleGenAIInstrumentor
 
-# 2 - Carrega variáveis de ambiente do arquivo .env
+# 2 - Carrega variáveis de ambiente do arquivo .env, inicia o langfuse, wrap calls - send span to langfuse e sessions langfuse
 load_dotenv()
+
+langfuse=get_client()
+assert langfuse.auth_check(), "Langfuse auth failed - check your keys ✋"
+
+GoogleGenAIInstrumentor().instrument()
 
 # 3 - Configura aplicação FastAPI
 app = FastAPI(
