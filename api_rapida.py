@@ -758,6 +758,49 @@ def extrair_meses_transacoes(transacoes: list[dict]) -> tuple[str, str]:
     
     return start_month, end_month
 
+# 17.6 - Função para filtrar transações baseada no tipo de documento
+def filtrar_transacoes_por_tipo_documento(transacoes: list[dict], document_type: str) -> list[dict]:
+    """
+    Filtra transações baseado no tipo de documento:
+    - credit-card-statement: remove valores negativos E transações do tipo "receita"
+    - bank-statement: mantém todos os valores
+    """
+    if document_type != "credit-card-statement":
+        print(f"DEBUG: Documento tipo '{document_type}' - mantendo todas as transações")
+        return transacoes
+    
+    print(f"DEBUG: Documento tipo 'credit-card-statement' - aplicando filtros específicos")
+    
+    transacoes_filtradas = []
+    removidas_valor_negativo = 0
+    removidas_tipo_receita = 0
+    
+    for transacao in transacoes:
+        valor = transacao.get('valor', 0)
+        categoria = transacao.get('categoria', '').lower()
+        
+        # Para cartão de crédito, remover valores negativos
+        if valor < 0:
+            removidas_valor_negativo += 1
+            print(f"DEBUG: Removida por valor negativo: {transacao.get('descricao', 'N/A')} - R$ {valor}")
+            continue
+            
+        # Para cartão de crédito, remover transações do tipo "receita"
+        if categoria == "receitas":
+            removidas_tipo_receita += 1
+            print(f"DEBUG: Removida por ser receita: {transacao.get('descricao', 'N/A')} - Categoria: {categoria}")
+            continue
+        
+        # Se passou por todos os filtros, manter a transação
+        transacoes_filtradas.append(transacao)
+    
+    total_removidas = removidas_valor_negativo + removidas_tipo_receita
+    print(f"DEBUG: Filtros aplicados - {len(transacoes_filtradas)} mantidas, {total_removidas} removidas")
+    print(f"DEBUG: Removidas por valor negativo: {removidas_valor_negativo}")
+    print(f"DEBUG: Removidas por tipo receita: {removidas_tipo_receita}")
+    
+    return transacoes_filtradas
+
 # 18 - Consolida resultados das páginas
 def consolidar_resultados_paginas(resultados_paginas: list[dict]) -> dict:
     """
@@ -793,26 +836,29 @@ def consolidar_resultados_paginas(resultados_paginas: list[dict]) -> dict:
             transacoes_vistas.add(chave)
             transacoes_unicas.append(transacao)
     
+    # NOVA FUNCIONALIDADE: Filtra transações baseado no tipo de documento
+    transacoes_filtradas = filtrar_transacoes_por_tipo_documento(transacoes_unicas, document_type)
+    
     error_message = None
-    if len(transacoes_unicas) == 0:
+    if len(transacoes_filtradas) == 0:
         if erros_reais:
             error_message = "; ".join(erros_reais)
         else:
-            error_message = "Nenhuma transação encontrada no documento"
+            error_message = "Nenhuma transação válida encontrada após aplicar filtros"
     elif erros_reais:
         error_message = "; ".join(erros_reais)
     
-    # Extrai os meses das transações
-    start_month, end_month = extrair_meses_transacoes(transacoes_unicas)
+    # Extrai os meses das transações (usando as filtradas)
+    start_month, end_month = extrair_meses_transacoes(transacoes_filtradas)
     
     resultado_final = {
-        "success": len(transacoes_unicas) > 0,
+        "success": len(transacoes_filtradas) > 0,
         "bank_name": bank_name,
         "document_type": document_type,
         "start_month": start_month,
         "end_month": end_month,
-        "transactions_count": len(transacoes_unicas),
-        "transactions": transacoes_unicas,
+        "transactions_count": len(transacoes_filtradas),
+        "transactions": transacoes_filtradas,
         "error_message": error_message
     }
     
@@ -861,6 +907,27 @@ Retorne apenas um JSON válido com o resultado.
             json_text = json_text.strip()
             
             json_output = json.loads(json_text) 
+            
+            # NOVA FUNCIONALIDADE: Aplica filtro para página única também
+            if json_output.get("success", False) and json_output.get("transactions"):
+                document_type = json_output.get("document_type", "unknown")
+                transacoes_filtradas = filtrar_transacoes_por_tipo_documento(
+                    json_output["transactions"], 
+                    document_type
+                )
+                
+                json_output["transactions"] = transacoes_filtradas
+                json_output["transactions_count"] = len(transacoes_filtradas)
+                
+                # Recalcula período com transações filtradas
+                start_month, end_month = extrair_meses_transacoes(transacoes_filtradas)
+                json_output["start_month"] = start_month
+                json_output["end_month"] = end_month
+                
+                # Atualiza status de sucesso
+                json_output["success"] = len(transacoes_filtradas) > 0
+                if len(transacoes_filtradas) == 0:
+                    json_output["error_message"] = "Nenhuma transação válida encontrada após aplicar filtros"
             
             print("DEBUG: Análise direta concluída com SUCESSO.")
             return json_output
