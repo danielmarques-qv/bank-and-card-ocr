@@ -956,6 +956,11 @@ async def _processar_bytes_sync(pdf_bytes: bytes, user_id: int = None, senha_do_
         if "transactions" in json_final and isinstance(json_final["transactions"], list):
             json_final["transactions_count"] = len(json_final["transactions"])
             
+            # Adiciona user_id como uuid em cada transação se user_id foi fornecido
+            if user_id is not None:
+                for transacao in json_final["transactions"]:
+                    transacao["uuid"] = str(user_id)
+            
         return JSONResponse(content=json_final)
         
     except HTTPException as e:
@@ -1004,6 +1009,10 @@ async def processar_e_enviar_webhook(file_url: str, webhook_url: str, user_id: i
         
         if "transactions" in json_resultado and isinstance(json_resultado["transactions"], list):
             json_resultado["transactions_count"] = len(json_resultado["transactions"])
+            
+            # Adiciona user_id como uuid em cada transação
+            for transacao in json_resultado["transactions"]:
+                transacao["uuid"] = str(user_id)
 
         print(f"SUCESSO [BG]: Processamento concluído para usuário {user_id}")
 
@@ -1036,7 +1045,7 @@ async def processar_e_enviar_webhook(file_url: str, webhook_url: str, user_id: i
 
 # 22 - Endpoint de upload direto
 @app.post("/processar-extrato/")
-async def processar_extrato_endpoint(file: UploadFile = File(...), user_id: int = 1, senha_do_pdf: str | None = None):
+async def processar_extrato_endpoint(user_id: int, file: UploadFile = File(...), senha_do_pdf: str | None = None):
     """
     Recebe um PDF via upload de arquivo (form-data), 
     executa o pipeline otimizado e retorna o JSON.

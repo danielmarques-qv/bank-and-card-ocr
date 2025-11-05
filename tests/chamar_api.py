@@ -9,8 +9,9 @@ API_URL = "http://localhost:8000/"
 ENDPOINT = "/processar-extrato-url/"
 
 # URLs para teste
-FILE_URL = "https://uugjjiacxcqcpayzpthl.supabase.co/storage/v1/object/public/quartavia/uploads/1761175347_Picpay.pdf"
-WEBHOOK_URL = "https://webhook.site/20e0bcc4-dd21-48e4-9368-273bcb1d8a73"  # Substitua por uma URL real
+FILE_URL = "https://uugjjiacxcqcpayzpthl.supabase.co/storage/v1/object/public/quartavia/uploads/1761189027_Bradesco.pdf"
+WEBHOOK_URL = "https://webhook.site/20e0bcc4-dd21-48e4-9368-273bcb1d8a73"
+USER_ID = 68  # Substitua por uma URL real
 
 def chamar_api_assincrona(file_url, webhook_url, user_id=1):
     """
@@ -32,7 +33,7 @@ def chamar_api_assincrona(file_url, webhook_url, user_id=1):
     payload = {
         "file_url": file_url,
         "webhook_url": webhook_url,
-        "user_id": user_id
+        "user_id": 68
     }
     
     # Headers
@@ -110,8 +111,8 @@ def main():
     print("🎯 SCRIPT DE CHAMADA - QUARTAVIA OCR API")
     print("=" * 60)
     
-    # Fazer a chamada (exemplo com user_id=123)
-    resultado = chamar_api_assincrona(FILE_URL, WEBHOOK_URL, user_id=1)
+    # Fazer a chamada (exemplo com user_id=64)
+    resultado = chamar_api_assincrona(FILE_URL, WEBHOOK_URL, user_id=68)
     
     print("\n" + "=" * 60)
     print("📋 RESULTADO FINAL:")

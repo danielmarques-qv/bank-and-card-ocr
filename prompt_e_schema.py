@@ -37,7 +37,7 @@ REGRAS DE ANÁLISE:
 
 7.  **Parcelamento:** Detecte parcelas (ex: "3/9", "PARC 01/12"). Se 'parcelado' for false, NÃO inclua os campos 'numero_parcelas' e 'total_parcelas'. Cheque para ver se colocou por engano.
 
-8.  **UUID:** Use "1" como 'uuid' para TODAS as transações.
+8.  **UUID:** O campo 'uuid' será preenchido programaticamente pela API com o user_id do usuário.
 
 9.  **Categorização:** Use as palavras-chave fornecidas no prompt do usuário para categorizar com precisão. Evite "DIVERSOS" a menos que seja a única opção.
 
@@ -51,7 +51,7 @@ REGRAS DE ANÁLISE:
   "transactions_count": 0, // Será atualizado pela API, pode deixar 0
   "transactions": [
     {
-      "uuid": "1",
+      "uuid": "",
       "data": "YYYY-MM-DD",
       "descricao": "Descrição da transação",
       "valor": 99.99,
@@ -63,7 +63,7 @@ REGRAS DE ANÁLISE:
       "total_parcelas": 9
     },
     {
-      "uuid": "1",
+      "uuid": "",
       "data": "YYYY-MM-DD",
       "descricao": "Outra transação",
       "valor": 50.00,
