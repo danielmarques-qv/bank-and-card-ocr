@@ -13,6 +13,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from google import genai
+from google.genai import types
 import pdfplumber
 import fitz
 import httpx
@@ -676,7 +677,8 @@ Retorne apenas um JSON válido com o resultado.
         response = await asyncio.to_thread(
             gemini_client.models.generate_content,
             model=MODEL_GEMINI,
-            contents=prompt_completo
+            contents=prompt_completo,
+            config=types.GenerateContentConfig(thinking_config=types.ThinkingConfig(thinking_budget=1024))
         )
         
         json_text = response.text
@@ -897,7 +899,8 @@ Retorne apenas um JSON válido com o resultado.
             response = await asyncio.to_thread(
                 gemini_client.models.generate_content,
                 model=MODEL_GEMINI,
-                contents=prompt_completo
+                contents=prompt_completo,
+                config=types.GenerateContentConfig(thinking_config=types.ThinkingConfig(thinking_budget=1024))
             )
             
             json_text = response.text
